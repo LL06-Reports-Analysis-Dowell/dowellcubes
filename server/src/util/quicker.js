@@ -2,6 +2,7 @@ import os from 'os';
 import QRCode from 'qrcode';
 import axios from 'axios';
 import config from '../config/config.js';
+import jwt from 'jsonwebtoken'
 
 export default {
 
@@ -128,6 +129,7 @@ export default {
             };
         }
     },
+
     createQrcode: async (data, qrcodeColor = '#000000', productName, fileName) => {
         const qrcodeLink = `${config.FRONTEND_URL}/${productName}/${data}`;
 
@@ -189,10 +191,30 @@ export default {
             };
         }
     },
+
     generateFileName:() => {
         const timestamp = Date.now();
         const filename = `qrcode_${timestamp}.png`
         return filename
-    }
+    },
+
+    generateToken: (payload, secret, expiry) => {
+        return jwt.sign(payload, secret, {
+            expiresIn: expiry
+        })
+    },
+
+    getDomainFromUrl: (url) => {
+        try {
+            const parsedUrl = new URL(url)
+            return parsedUrl.hostname
+        } catch (err) {
+            throw err
+        }
+    },
+
+    verifyToken: (token, secret) => {
+        return jwt.verify(token, secret)
+    },
 };
 

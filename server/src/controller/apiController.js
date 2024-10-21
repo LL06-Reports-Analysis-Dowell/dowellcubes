@@ -2,10 +2,17 @@ import httpResponse from '../util/httpResponse.js';
 import responseMessage from '../constant/responseMessage.js';
 import httpError from '../util/httpError.js';
 import quicker from '../util/quicker.js';
-import { ValidateCreateCollectionBody, validateJoiSchema, ValidateRegisterBody, ValidateLoginBody } from '../service/validationService.js';
+import { ValidateCreateCollectionBody, validateJoiSchema, ValidateRegisterBody, ValidateAdminLoginBody,ValidatePublicLoginBody } from '../service/validationService.js';
 import Datacubeservice from '../service/datacubeService.js';
 import databaseService from '../service/databaseService.js';
 import { saveUserToDatacubeServices,updateDatabaseAndCollectionStatusServices } from '../service/producerService.js';
+import config from '../config/config.js';
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc.js';
+import { EApplicationEnvironment } from '../constant/application.js';
+import { EUserRoles } from '../constant/enumConstant.js';
+
+dayjs.extend(utc); 
 
 export default {
     self: (req, res, next) => {
@@ -84,7 +91,7 @@ export default {
             }
 
             const updateUserDatabaseStatus = await databaseService.updateUserDatabaseStatus(workspaceId, {
-                isisDatabaseReady: true,
+                isDatabaseReady: true,
             })
 
             if(!updateUserDatabaseStatus){
@@ -109,8 +116,9 @@ export default {
             }
 
             const updateUserCollectionStatus = await databaseService.updateUserDatabaseStatus(workspaceId, {
-                isisDatabaseReady: true,
+                isCollectionReady: true,
             })
+
 
             if(!updateUserCollectionStatus){
                 return httpError(next, new Error(responseMessage.DATACUBE_SERVICE_ERROR('update user collection status')), req, 500);
@@ -172,15 +180,244 @@ export default {
             httpError(next, err, req, 500);
         }
     },
-    login: (req, res, next) => {
+    adminLogin: async (req, res, next) => {
         try {
             const { body } = req;
 
-            const { value, error } = validateJoiSchema(ValidateLoginBody, body)
-            if(error) {
+            const { value, error } = validateJoiSchema(ValidateAdminLoginBody, body)
+            if (error) {
                 return httpError(next, error, req, 422);
             }
-            httpResponse(req, res, 200, responseMessage.SUCCESS,value);
+            const { username,workspaceId } = value;
+
+            
+            const user = await databaseService.findUserByWorkspaceIdAndUserNameAndRole(workspaceId, username);
+
+            if(!user){
+                return httpError(next, new Error(responseMessage.NOT_FOUND('user')), req, 404);
+            }
+
+            const accessToken = quicker.generateToken(
+                {
+                    userId: user.id
+                },
+                config.ACCESS_TOKEN.SECRET,
+                config.ACCESS_TOKEN.EXPIRY
+            )
+
+            const DOMAIN = quicker.getDomainFromUrl(config.SERVER_URL)
+
+            user.loginInfo.count += 1;
+            user.loginInfo.dates.push(dayjs().utc().toDate());
+            user.save()
+
+            res.cookie('accessToken', accessToken, {
+                path: '/api/v1',
+                domain: DOMAIN,
+                sameSite: 'strict',
+                maxAge: 1000 * config.ACCESS_TOKEN.EXPIRY,
+                httpOnly: true,
+                secure: !(config.ENV === EApplicationEnvironment.DEVELOPMENT)
+            })
+            
+            httpResponse(req, res, 200, responseMessage.SUCCESS,{
+                accessToken
+            });
+        } catch (err) {
+            httpError(next, err, req, 500);
+        }
+    },
+    publicLogin: async (req, res, next) => {
+        try {
+            const { body } = req;
+            const { value, error } = validateJoiSchema(ValidatePublicLoginBody, body)
+            if (error) {
+                return httpError(next, error, req, 422);
+            }
+            const { workspaceName, portfolioName, password } = value;
+
+            console.log("checking if the portfolio user exists....");
+            
+            const existingUser = await databaseService.findPublicUser(workspaceName, portfolioName, '+password');
+
+            console.log("checked the portfolio user exists or not....");
+
+            if (existingUser) {
+
+                console.log("portfolio user exists....");
+
+                console.log("checking if the password matches...");
+                
+                if(existingUser.password !== password){
+
+                    console.log("password does not match...");
+
+                    return httpError(next, new Error(responseMessage.INCORRECT_PASSWORD), req, 401);
+                }
+
+                console.log("password matches...");
+
+                console.log("generating access token...");
+
+                const accessToken = quicker.generateToken(
+                    {
+                        userId: existingUser.id
+                    },
+                    config.ACCESS_TOKEN.SECRET,
+                    config.ACCESS_TOKEN.EXPIRY
+                )
+                
+                console.log("Generating domain..");
+                
+                const DOMAIN = quicker.getDomainFromUrl(config.SERVER_URL)
+                
+                console.log("Updating login info...");
+
+                existingUser.loginInfo.count += 1;
+                existingUser.loginInfo.dates.push(dayjs().utc().toDate());
+                existingUser.save()
+
+                console.log("Generated and sent access token...");
+
+                res.cookie('accessToken', accessToken, {
+                    path: '/api/v1',
+                    domain: DOMAIN,
+                    sameSite: 'strict',
+                    maxAge: 1000 * config.ACCESS_TOKEN.EXPIRY,
+                    httpOnly: true,
+                    secure: !(config.ENV === EApplicationEnvironment.DEVELOPMENT)
+                })
+                
+                console.log("Access token sent successfully...");
+
+                httpResponse(req, res, 200, responseMessage.SUCCESS,{
+                    accessToken
+                });
+            }
+
+            console.log("Portfolio user does not exist...");
+            console.log("Checking Dowell Login...");
+            
+            const dowellLoginDetails = await quicker.dowellLoginService(portfolioName, password, workspaceName);
+
+            console.log("Checked Dowell Login...");
+
+            if (!dowellLoginDetails.success){
+                
+                console.log("User does not exist in dowell client admin..");
+                
+                return httpError(next, new Error(responseMessage.INCORRECT_PASSWORD), req, 401);
+            }
+
+            console.log("User exists in dowell client admin..");
+
+            const dowellLogin = dowellLoginDetails.userinfo
+
+            console.log("Checking the owner exists...");
+            
+            const ownerDetails = await databaseService.findByUsername( workspaceName );
+
+            if(!ownerDetails){
+
+                console.log("Owner does not exist...");
+
+                return httpError(next, new Error(responseMessage.NOT_FOUND('Owner')), req, 404);
+            }
+
+            console.log("Owner exists...");
+
+            console.log("Checking the owner's account status...");
+
+            if (!ownerDetails.isActive || !ownerDetails.isDatabaseReady || !ownerDetails.isCollectionReady) {
+                let issues = [];
+            
+                if (!ownerDetails.isActive) {
+                    issues.push("Owner's account is not active");
+                }
+                if (!ownerDetails.isDatabaseReady) {
+                    issues.push("Database is not ready");
+                }
+                if (!ownerDetails.isCollectionReady) {
+                    issues.push("Collections are not ready");
+                }
+            
+                return httpError(next, new Error(responseMessage.CUSTOM_ERROR(issues)), req, 401);
+            }
+
+            console.log("Owner's account status is active...");
+
+            console.log("Payload for Registering public user...");
+
+            const payload = {
+                workspaceName: workspaceName,
+                portfolioName: portfolioName,
+                email: "",
+                portfolioId: dowellLogin.portfolio_info.username[0],
+                workspaceId: dowellLogin.userinfo.owner_id,
+                memberType: dowellLogin.portfolio_info.member_type,
+                password: password,
+                dataType: dowellLogin.portfolio_info.data_type,
+                operationsRight: dowellLogin.portfolio_info.operations_right,
+                status: dowellLogin.portfolio_info.status,
+                ownerId: ownerDetails._id,
+                role: EUserRoles.PUBLICUSER,
+                apiKey: ownerDetails.apiKey,
+            }
+
+            console.log("Registering public user...");
+            
+            const newUser = await databaseService.registerPublic(payload)
+
+            if(!newUser) {
+
+                console.log("Failed to register public user...");
+                return httpError(next, new Error(responseMessage.SOMETHING_WENT_WRONG), req, 500);
+            }
+
+            console.log("Added to Q or redis server...");
+
+            saveUserToDatacubeServices(newUser)
+
+            console.log("Public user registered successfully...");
+            console.log("Updating login info...");
+
+            const accessToken = quicker.generateToken(
+                {
+                    userId: newUser.id
+                },
+                config.ACCESS_TOKEN.SECRET,
+                config.ACCESS_TOKEN.EXPIRY
+            )
+
+            console.log("Generating domain..");
+            const DOMAIN = quicker.getDomainFromUrl(config.SERVER_URL)
+            
+            console.log("Generating access token..");
+            
+            res.cookie('accessToken', accessToken, {
+                path: '/api/v1',
+                domain: DOMAIN,
+                sameSite: 'strict',
+                maxAge: 1000 * config.ACCESS_TOKEN.EXPIRY,
+                httpOnly: true,
+                secure: !(config.ENV === EApplicationEnvironment.DEVELOPMENT)
+            })
+            
+            console.log("Access token sent successfully...");
+            console.log("Sending response...");
+
+            httpResponse(req, res, 200, responseMessage.SUCCESS,{
+                accessToken
+            });
+
+        } catch (err) {
+            httpError(next, err, req, 500);
+        }
+    },
+    selfIdentification: (req, res, next) => {
+        try {
+            const { authenticatedUser } = req
+            httpResponse(req, res, 200, responseMessage.SUCCESS, authenticatedUser)
         } catch (err) {
             httpError(next, err, req, 500);
         }

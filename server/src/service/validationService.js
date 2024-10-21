@@ -13,32 +13,16 @@ export const ValidateRegisterBody = Joi.object({
     role: Joi.string().valid(...Object.values(EUserRoles)).optional()
 });
 
-export const ValidateLoginBody = Joi.object({
+export const ValidateAdminLoginBody = Joi.object({
     username: Joi.string().trim().required(),
-    workspaceId: Joi.string()
-        .min(2)
-        .max(255)
-        .trim()
-        .when(Joi.object({ role: Joi.string().valid(EUserRoles.OWNER, EUserRoles.TEAMMEMBER) }).unknown(), {
-            then: Joi.required(),
-            otherwise: Joi.optional(),
-        }),
-    password: Joi.string()
-        .min(6)
-        .max(255)
-        .trim()
-        .when(Joi.object({ role: Joi.string().valid(EUserRoles.PUBLICUSER) }).unknown(), {
-            then: Joi.required(),
-            otherwise: Joi.optional(),
-        }),
-    portfolioName: Joi.string()
-        .when(Joi.object({ role: Joi.string().valid(EUserRoles.PUBLICUSER) }).unknown(), {
-            then: Joi.required(),
-            otherwise: Joi.optional(),
-        }),
-    role: Joi.string().valid(EUserRoles.OWNER, EUserRoles.TEAMMEMBER, EUserRoles.PUBLICUSER).optional(),
+    workspaceId: Joi.string().min(2).max(255).trim().required()
 });
 
+export const ValidatePublicLoginBody = Joi.object({
+    workspaceName: Joi.string().trim().required(),
+    portfolioName: Joi.string().trim().required(),
+    password: Joi.string().trim().required(),
+})
 export const validateJoiSchema = (schema, value) => {
     const result = schema.validate(value);
     return {

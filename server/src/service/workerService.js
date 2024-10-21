@@ -5,6 +5,7 @@ import Datacubeservices from './datacubeService.js';
 export const saveUserToDatabaseWorker = new Worker(
   'save-user-into-datacube',
   async (job) => {
+    
     const datacubeServices = new Datacubeservices(job.data.apiKey);
 
     try {
