@@ -1,0 +1,73 @@
+version: '3.9'
+
+services:
+  mongo:
+    container_name: mongo_container
+    image: 'mongo'
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - queue-net
+    env_file: 
+      - ./.env.development
+    command: mongod --bind_ip_all
+    restart: always
+
+  client:
+    container_name: client
+    build:
+      context: ./client
+      dockerfile: docker/development/Dockerfile
+    ports:
+      - '5173:5173'
+    restart: always
+    env_file: 
+      - ./.env.development
+    volumes:
+      - ./client/src:/usr/src/app/src
+      - ./client/package.json:/usr/src/app/package.json
+    depends_on:
+      - server
+    networks:
+      - queue-net
+
+  server:
+    container_name: server
+    build:
+      context: ./server
+      dockerfile: docker/development/Dockerfile
+    ports:
+      - '5000:5000'
+    depends_on:
+      - mongo
+      - cache
+    env_file: 
+      - ./.env.development
+    volumes:
+      - ./server/src:/usr/src/app/src
+      - ./server/package.json:/usr/src/app/package.json
+      - ./server/nodemon.json:/usr/src/app/nodemon.json
+    networks:
+      - queue-net
+
+  cache:
+    container_name: cache_container
+    image: redis:latest
+    restart: always
+    ports:
+      - '6379:6379'
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    command: redis-server --save 20 1 --loglevel warning --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - cache:/data
+    networks:
+      - queue-net
+  
+networks:
+  queue-net:
+    driver: bridge
+
+volumes:
+  mongo-data:
+  cache:
