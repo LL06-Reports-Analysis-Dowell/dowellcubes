@@ -180,7 +180,7 @@ export default {
             if(error) {
                 return httpError(next, error, req, 422);
             }
-            httpResponse(req, res, 200, responseMessage.SUCCESS);
+            httpResponse(req, res, 200, responseMessage.SUCCESS,value);
         } catch (err) {
             httpError(next, err, req, 500);
         }
