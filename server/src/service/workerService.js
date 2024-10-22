@@ -110,3 +110,56 @@ export const updateDatabaseAndCollectionStatusWorker = new Worker(
     }
   }
 );
+
+export const saveCubeQrcodeToDatabaseWorker = new Worker(
+  'save-cubeqrcode-into-datacube',
+  async (job) => {
+    
+    const datacubeServices = new Datacubeservices(job.data.apiKey);
+
+    try {
+      const extendedData = {
+        ...job.data,
+        records: [{ record: "1", type: "overall" }]
+      };
+
+      const cubeqrcode = await datacubeServices.dataInsertion(
+        `${extendedData.workspaceId}_dowellcube_database`,
+        `${extendedData.workspaceId}_dowellcube_cubes`,
+        extendedData
+      );
+
+      if (!cubeqrcode.success) {
+        console.log("Data insertion failed");
+        return { 
+          success: false,
+          message: "Failed to save user data"
+        };
+      }
+
+      return {
+        success: true,
+        message: "cubeqrcode data saved successfully"
+      };
+    } catch (error) {
+      console.error("Error during data insertion:", error);
+      return {
+        success: false,
+        message: `Failed to save user data: ${error.message}`
+      };
+    }
+  },
+  {
+    connection: {
+      host: config.REDIS_HOST,
+      port: config.REDIS_PORT,
+      password: config.REDIS_PASSWORD
+    },
+    timeout: 300000,
+    attempts: 5,
+    backoff: {
+      type: 'exponential',
+      delay: 10000
+    }
+  }
+);

@@ -2,7 +2,7 @@ import app from './app.js';
 import config from './config/config.js';
 import { initRateLimiter } from './config/rateLimiter.js';
 import databaseService from './service/databaseService.js';
-import { saveUserToDatabaseWorker, updateDatabaseAndCollectionStatusWorker } from './service/workerService.js';
+import { saveUserToDatabaseWorker, updateDatabaseAndCollectionStatusWorker,saveCubeQrcodeToDatabaseWorker } from './service/workerService.js';
 import logger from './util/logger.js';
 
 const server = app.listen(config.PORT);
@@ -50,6 +50,7 @@ const initializeWorker = (worker, name) => {
         if (connection) {
             initializeWorker(saveUserToDatabaseWorker, 'SAVE_USER_TO_DATACUBE');
             initializeWorker(updateDatabaseAndCollectionStatusWorker, 'UPDATE_DATABASE_AND_COLLECTION_STATUS');
+            initializeWorker(saveCubeQrcodeToDatabaseWorker, 'SAVE_CUBE_QRCODE_TO_DATABCUBE');
             
             logger.info('DATABASE_CONNECTION', {
                 meta: {

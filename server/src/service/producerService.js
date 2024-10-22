@@ -62,3 +62,35 @@ export const updateDatabaseAndCollectionStatusServices = async (data) => {
         };
     }
 };
+
+
+const saveCubeQrcodeToDatacube = new Queue('save-cubeqrcode-into-datacube', {
+    connection: {
+        host: config.REDIS_HOST,
+        port: config.REDIS_PORT,
+        password: config.REDIS_PASSWORD
+    }
+});
+
+export const saveCubeQrcodeToDatacubeServices = async (data) => {
+    try {
+        const response = await saveCubeQrcodeToDatacube.add('save cubeqrcode data to datacube', data);
+        console.log("Added data to queue", response.id);
+        if (response) {
+            return {
+                success: true,
+                message: `Cuberqrcode data queued successfully with job ID: ${response.id}`
+            };
+        } else {
+            return {
+                success: false,
+                message: "Failed to queue data"
+            };
+        }   
+    } catch (error) {
+        return {
+            success: false,
+            message: `Error: ${error.message}`
+        };
+    }
+};

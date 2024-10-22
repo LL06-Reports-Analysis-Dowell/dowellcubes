@@ -5,7 +5,7 @@ import quicker from '../util/quicker.js';
 import { ValidateCreateCollectionBody, validateJoiSchema, ValidateRegisterBody, ValidateAdminLoginBody,ValidatePublicLoginBody,ValidateCreateCubeQrcodeForPublicBody } from '../service/validationService.js';
 import Datacubeservice from '../service/datacubeService.js';
 import databaseService from '../service/databaseService.js';
-import { saveUserToDatacubeServices,updateDatabaseAndCollectionStatusServices } from '../service/producerService.js';
+import { saveCubeQrcodeToDatacubeServices, saveUserToDatacubeServices,updateDatabaseAndCollectionStatusServices } from '../service/producerService.js';
 import config from '../config/config.js';
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc.js';
@@ -365,37 +365,42 @@ export default {
             if (error) {
                 return httpError(next, error, req, 422);
             }
-    
+            
+            const existingCubeQrcode = await databaseService.findCubeQrcode(
+                authenticatedUser.portfolioId,
+                authenticatedUser.workspaceId,
+                authenticatedUser.portfolioName
+            )
+
+            if(existingCubeQrcode) {
+                return httpError(next, new Error(responseMessage.ALREADY_EXIST('Cube Qrcode', 'user')) , req, 404);
+            }
+
             const { latitude, longitude, location, cubeQrocdeDetailsData, numberOfCubeQrcodes } = value;
-    
+            
+            
             if (cubeQrocdeDetailsData.length !== numberOfCubeQrcodes) {
-                return httpError(next, 'Mismatch between number of QR codes and details provided.', req, 400);
+                return httpError(next, new Error(responseMessage.CUSTOM_ERROR('Mismatch between number of QR codes and details provided.')), req, 400);
             }
     
             const cubeQrcodeIds = Array(numberOfCubeQrcodes).fill(null).map(() => quicker.generateRandomId());
+            
             const cubeQrocdeDetails = [];
     
             for (let i = 0; i < cubeQrcodeIds.length; i++) {
                 const qrcodeId = cubeQrcodeIds[i];
                 const qrcodeDetails = cubeQrocdeDetailsData[i];
     
-                const qrCodeResult = await quicker.createQrcode(qrcodeId);
+                const qrCodeResult = await quicker.createQrcode(qrcodeId,authenticatedUser.portfolioId);
+                console.log('QR Code generation result:', qrCodeResult)
+
                 if (!qrCodeResult.success) {
                     return httpError(next, qrCodeResult.message, req, 500);
                 }
     
-                const qrCodeName = quicker.generateFileName();
-                const uploadResult = await quicker.uploadQrcodeImage(qrCodeResult.response.qrCodeData, qrCodeName);
-
-                console.log(uploadResult);
-                
-                if (!uploadResult.success) {
-                    return httpError(next, uploadResult.message, req, 500);
-                }
-    
                 cubeQrocdeDetails.push({
                     qrcodeId,
-                    qrcodeImageLink: uploadResult.data.fileUrl,
+                    qrcodeImageLink: qrCodeResult.response.qrcodeUrl,
                     qrcodeLink: qrCodeResult.response.qrcodeLink,
                     qrocdeType: qrcodeDetails.qrcodeType,
                     name: qrcodeDetails.name,
@@ -419,11 +424,67 @@ export default {
                 location,
                 cubeQrocdeDetails
             };
+
+            const cubeQrcode = await databaseService.createCubeQrcode(cubeQrcodePayload);
+
+            if (!cubeQrcode) {
+                return httpError(next, new Error(responseMessage.SOMETHING_WENT_WRONG), req, 500);
+            }
+
+            console.log("Added to Q or redis server...");
+            saveCubeQrcodeToDatacubeServices(cubeQrcodePayload)
     
-            httpResponse(req, res, 200, responseMessage.SUCCESS, cubeQrcodePayload);
+            httpResponse(req, res, 200, responseMessage.SUCCESS);
+        } catch (err) {
+            console.log("herrrr...");
+            
+            httpError(next, err, req, 500);
+        }
+    },
+    getCubeQrcodesByPortfolio: async (req, res, next) => {
+        try {
+            const { authenticatedUser } = req;
+            
+            const existingCubeQrcode = await databaseService.findCubeQrcode(
+                authenticatedUser.portfolioId,
+                authenticatedUser.workspaceId,
+                authenticatedUser.portfolioName
+            )
+
+            if(!existingCubeQrcode) {
+                return httpError(next, new Error(responseMessage.CUSTOM_ERROR('Please create cube qrcode')) , req, 404);
+            }
+
+            httpResponse(req, res, 200, responseMessage.SUCCESS, existingCubeQrcode);
+
         } catch (err) {
             httpError(next, err, req, 500);
         }
-    }
+    },
+    getSpecificQrcodeDetails: async(req, res, next) => {
+        try {
+            const { authenticatedUser, params } = req;
+            const { cubeQrcodeId } = params;
+
+            const existingCubeQrcode = await databaseService.findCubeQrcodeByQrcodeId(
+                authenticatedUser.portfolioId,
+                authenticatedUser.workspaceId,
+            )
+
+            if(!existingCubeQrcode) {
+                return httpError(next, new Error(responseMessage.NOT_FOUND('Cube Qrcode')), req, 404);
+            }
+
+            const qrcodeDetails = existingCubeQrcode.cubeQrocdeDetails.find(qr => qr.qrcodeId === cubeQrcodeId);
+
+            if(!qrcodeDetails) {
+                return httpError(next, new Error(responseMessage.NOT_FOUND('Specific Qrcode details')), req, 404);
+            }
+
+            httpResponse(req, res, 200, responseMessage.SUCCESS,qrcodeDetails);
+        } catch (err) {
+            httpError(next, err, req, 500);
+        }
+    },
     
 };

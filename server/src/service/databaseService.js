@@ -3,6 +3,7 @@ import config from '../config/config.js';
 import userModel from '../model/userModel.js';
 import { EUserRoles } from '../constant/enumConstant.js';
 import portfolioModel from '../model/portfolioModel.js';
+import cubeqrcodeModel from '../model/cubeqrcodeModel.js';
 
 export default {
     connect: async () => {
@@ -52,4 +53,21 @@ export default {
     findPortfolioUserById:(id, select='') => {
         return portfolioModel.findById(id).select(select);
     },
+    findCubeQrcode:(portfolioId,workspaceId,portfolioName) =>{
+        return cubeqrcodeModel.findOne({ portfolioId, workspaceId, portfolioName})
+    },
+    createCubeQrcode: (payload) => {
+        return cubeqrcodeModel.create(payload)
+    },
+    findCubeQrcodeByQrcodeId:(portfolioId,workspaceId) => {
+        return cubeqrcodeModel.findOne({ portfolioId, workspaceId })
+    }, 
+    findOriginalLink: (portfolioId, qrcodeId) => {
+        return cubeqrcodeModel.findOne({
+            portfolioId,
+            'cubeQrocdeDetails.qrcodeId': qrcodeId,
+            'cubeQrocdeDetails.originalLink': { $exists: true }
+        }, { 'cubeQrocdeDetails.$': 1 });
+    }
+    
 };

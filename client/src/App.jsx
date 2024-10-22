@@ -12,6 +12,7 @@ import PublicSignupPage from './Pages/Auth/SignupPage/PublicSignupPage';
 import AdminSignupPage from './Pages/Auth/SignupPage/AdminSignupPage';
 import LogoutPage from './Pages/Dashboard/DashboardPages/LogoutPage';
 import PreferencePage from './Pages/Dashboard/DashboardPages/PreferencePage';
+import NotFoundPage from './Pages/PageNotFound/NotFoundPage';
 
 const App = () => {
   return (
@@ -28,6 +29,7 @@ const App = () => {
 
         {/* Healthcheck Route */}
         <Route path="/healthcheck" element={<Healthcheck />} />
+        <Route path="/page-not-found" element={<NotFoundPage />} />
 
         {/* Dashboard Routes */}
         <Route path="/dashboard" element={<DashboardPage />}>
