@@ -3,6 +3,7 @@ import QRCode from 'qrcode';
 import axios from 'axios';
 import config from '../config/config.js';
 import jwt from 'jsonwebtoken'
+import { v4 } from 'uuid'
 
 export default {
 
@@ -33,8 +34,8 @@ export default {
         };
     },
 
-    updaloadQrcodeImage: async (imgData, imgName = null) => {
-        const url = 'https://dowellfileuploader.uxlivinglab.online/uploadfiles/upload-qrcode-to-drive/';
+    uploadQrcodeImage: async (imgData, imgName = null) => {
+        const url = 'https://dowellfileuploader.uxlivinglab.online/uploadfiles/dowellcubes/';
         const fileName = imgName || 'qrcode.png';
 
         try {
@@ -130,8 +131,8 @@ export default {
         }
     },
 
-    createQrcode: async (data, qrcodeColor = '#000000', productName, fileName) => {
-        const qrcodeLink = `${config.FRONTEND_URL}/${productName}/${data}`;
+    createQrcode: async (data, qrcodeColor = '#000000') => {
+        const qrcodeLink = `${config.FRONTEND_URL}/${data}`;
 
         try {
             const qrCodeData = await QRCode.toBuffer(qrcodeLink, {
@@ -158,24 +159,11 @@ export default {
                 };
             }
 
-            const qrcodeUrlResponse = await qricker.updaloadQrcodeImage(qrCodeData, fileName);
-
-            if (!qrcodeUrlResponse.success) {
-                return {
-                    success: false,
-                    message: 'Failed to upload QR code image',
-                    response: {
-                        qrcodeUrl: null,
-                        qrcodeLink: qrcodeLink
-                    }
-                };
-            }
-
             return {
                 success: true,
                 message: 'QR code generated and uploaded successfully',
                 response: {
-                    qrcodeUrl: qrcodeUrlResponse.data.fileUrl,
+                    qrCodeData,
                     qrcodeLink
                 }
             };
@@ -216,5 +204,7 @@ export default {
     verifyToken: (token, secret) => {
         return jwt.verify(token, secret)
     },
+
+    generateRandomId: () => v4()
 };
 

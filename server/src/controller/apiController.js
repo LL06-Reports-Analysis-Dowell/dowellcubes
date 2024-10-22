@@ -2,7 +2,7 @@ import httpResponse from '../util/httpResponse.js';
 import responseMessage from '../constant/responseMessage.js';
 import httpError from '../util/httpError.js';
 import quicker from '../util/quicker.js';
-import { ValidateCreateCollectionBody, validateJoiSchema, ValidateRegisterBody, ValidateAdminLoginBody,ValidatePublicLoginBody } from '../service/validationService.js';
+import { ValidateCreateCollectionBody, validateJoiSchema, ValidateRegisterBody, ValidateAdminLoginBody,ValidatePublicLoginBody,ValidateCreateCubeQrcodeForPublicBody } from '../service/validationService.js';
 import Datacubeservice from '../service/datacubeService.js';
 import databaseService from '../service/databaseService.js';
 import { saveUserToDatacubeServices,updateDatabaseAndCollectionStatusServices } from '../service/producerService.js';
@@ -360,30 +360,70 @@ export default {
         try {
             const { authenticatedUser } = req;
             const { body } = req;
+    
+            const { value, error } = validateJoiSchema(ValidateCreateCubeQrcodeForPublicBody, body);
+            if (error) {
+                return httpError(next, error, req, 422);
+            }
+    
+            const { latitude, longitude, location, cubeQrocdeDetailsData, numberOfCubeQrcodes } = value;
+    
+            if (cubeQrocdeDetailsData.length !== numberOfCubeQrcodes) {
+                return httpError(next, 'Mismatch between number of QR codes and details provided.', req, 400);
+            }
+    
+            const cubeQrcodeIds = Array(numberOfCubeQrcodes).fill(null).map(() => quicker.generateRandomId());
+            const cubeQrocdeDetails = [];
+    
+            for (let i = 0; i < cubeQrcodeIds.length; i++) {
+                const qrcodeId = cubeQrcodeIds[i];
+                const qrcodeDetails = cubeQrocdeDetailsData[i];
+    
+                const qrCodeResult = await quicker.createQrcode(qrcodeId);
+                if (!qrCodeResult.success) {
+                    return httpError(next, qrCodeResult.message, req, 500);
+                }
+    
+                const qrCodeName = quicker.generateFileName();
+                const uploadResult = await quicker.uploadQrcodeImage(qrCodeResult.response.qrCodeData, qrCodeName);
 
-            // const { value, error } = validateJoiSchema(ValidateCreateCubeQrcodeForPublicBody, body);
-            // if (error) {
-            //     return httpError(next, error, req, 422);
-            // }
-            const userPayload = {
+                console.log(uploadResult);
+                
+                if (!uploadResult.success) {
+                    return httpError(next, uploadResult.message, req, 500);
+                }
+    
+                cubeQrocdeDetails.push({
+                    qrcodeId,
+                    qrcodeImageLink: uploadResult.data.fileUrl,
+                    qrcodeLink: qrCodeResult.response.qrcodeLink,
+                    qrocdeType: qrcodeDetails.qrcodeType,
+                    name: qrcodeDetails.name,
+                    originalLink: qrcodeDetails.originalLink,
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                    numberTimesEmailed: 0
+                });
+            }
+    
+            const cubeQrcodePayload = {
                 portfolioId: authenticatedUser.portfolioId,
                 workspaceId: authenticatedUser.workspaceId,
+                portfolioName: authenticatedUser.portfolioName,
                 createdBy: authenticatedUser.role,
                 apiKey: authenticatedUser.apiKey,
                 publicUserId: authenticatedUser._id,
-            }
-
-            const cubeQrCodeExists = await databaseService.findCubeQrcodeBy(authenticatedUser._id,portfolioId,workspaceId);
-            if(cubeQrCodeExists){
-                return httpError(next, new Error(responseMessage.CUSTOM_ERROR('Cube Qr Code exist for the user')), req, 409);
-            }
-
-            
-            httpResponse(req, res, 200, responseMessage.SUCCESS,{
-                userPayload
-            });
+                latitude,
+                longitude,
+                isActive: true,
+                location,
+                cubeQrocdeDetails
+            };
+    
+            httpResponse(req, res, 200, responseMessage.SUCCESS, cubeQrcodePayload);
         } catch (err) {
             httpError(next, err, req, 500);
         }
-    },
+    }
+    
 };

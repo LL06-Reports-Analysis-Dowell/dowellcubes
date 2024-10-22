@@ -1,5 +1,5 @@
 import Joi from 'joi';
-import { EUserRoles } from '../constant/enumConstant.js';
+import { EUserRoles, EQrcodeTypes } from '../constant/enumConstant.js';
 
 export const ValidateCreateCollectionBody = Joi.object({
     workspaceId: Joi.string().min(2).max(1000).trim().required(),
@@ -25,10 +25,21 @@ export const ValidatePublicLoginBody = Joi.object({
 })
 
 export const ValidateCreateCubeQrcodeForPublicBody = Joi.object({
-    workspaceName: Joi.string().trim().required(),
-    portfolioName: Joi.string().trim().required()
-    
-})
+    latitude: Joi.number().required(),
+    longitude: Joi.number().required(),
+    location: Joi.string().required(),
+    numberOfCubeQrcodes: Joi.number().min(1).max(10).required(),
+    cubeQrocdeDetailsData: Joi.array().items(
+        Joi.object({
+            qrcodeType: Joi.string().valid(...Object.values(EQrcodeTypes)).required(),
+            name: Joi.string().required(),
+            originalLink: Joi.string().uri().required()
+        })
+    )
+    .min(1)
+    .max(Joi.ref('numberOfCubeQrcodes'))
+    .required()
+});
 
 export const validateJoiSchema = (schema, value) => {
     const result = schema.validate(value);
