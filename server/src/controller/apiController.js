@@ -230,55 +230,33 @@ export default {
     publicLogin: async (req, res, next) => {
         try {
             const { body } = req;
-            const { value, error } = validateJoiSchema(ValidatePublicLoginBody, body)
+            const { value, error } = validateJoiSchema(ValidatePublicLoginBody, body);
             if (error) {
                 return httpError(next, error, req, 422);
             }
             const { workspaceName, portfolioName, password } = value;
-
-            console.log("checking if the portfolio user exists....");
             
             const existingUser = await databaseService.findPublicUser(workspaceName, portfolioName, '+password');
-
-            console.log("checked the portfolio user exists or not....");
-
+    
             if (existingUser) {
-
-                console.log("portfolio user exists....");
-
-                console.log("checking if the password matches...");
-                
-                if(existingUser.password !== password){
-
-                    console.log("password does not match...");
-
+                if (existingUser.password !== password) {
                     return httpError(next, new Error(responseMessage.INCORRECT_PASSWORD), req, 401);
                 }
-
-                console.log("password matches...");
-
-                console.log("generating access token...");
-
+    
                 const accessToken = quicker.generateToken(
                     {
                         userId: existingUser.id
                     },
                     config.ACCESS_TOKEN.SECRET,
                     config.ACCESS_TOKEN.EXPIRY
-                )
+                );
                 
-                console.log("Generating domain..");
+                const DOMAIN = quicker.getDomainFromUrl(config.SERVER_URL);
                 
-                const DOMAIN = quicker.getDomainFromUrl(config.SERVER_URL)
-                
-                console.log("Updating login info...");
-
                 existingUser.loginInfo.count += 1;
                 existingUser.loginInfo.dates.push(dayjs().utc().toDate());
-                existingUser.save()
-
-                console.log("Generated and sent access token...");
-
+                existingUser.save();
+    
                 res.cookie('accessToken', accessToken, {
                     path: '/api/v1',
                     domain: DOMAIN,
@@ -286,48 +264,25 @@ export default {
                     maxAge: 1000 * config.ACCESS_TOKEN.EXPIRY,
                     httpOnly: true,
                     secure: !(config.ENV === EApplicationEnvironment.DEVELOPMENT)
-                })
-                
-                console.log("Access token sent successfully...");
-
-                httpResponse(req, res, 200, responseMessage.SUCCESS,{
-                    accessToken
                 });
+    
+                return httpResponse(req, res, 200, responseMessage.SUCCESS, { accessToken });
             }
-
-            console.log("Portfolio user does not exist...");
-            console.log("Checking Dowell Login...");
-            
+    
             const dowellLoginDetails = await quicker.dowellLoginService(portfolioName, password, workspaceName);
-
-            console.log("Checked Dowell Login...");
-
-            if (!dowellLoginDetails.success){
-                
-                console.log("User does not exist in dowell client admin..");
-                
+    
+            if (!dowellLoginDetails.success) {
                 return httpError(next, new Error(responseMessage.INCORRECT_PASSWORD), req, 401);
             }
-
-            console.log("User exists in dowell client admin..");
-
-            const dowellLogin = dowellLoginDetails.userinfo
-
-            console.log("Checking the owner exists...");
-            
-            const ownerDetails = await databaseService.findByUsername( workspaceName );
-
-            if(!ownerDetails){
-
-                console.log("Owner does not exist...");
-
+    
+            const dowellLogin = dowellLoginDetails.userinfo;
+    
+            const ownerDetails = await databaseService.findByUsername(workspaceName);
+    
+            if (!ownerDetails) {
                 return httpError(next, new Error(responseMessage.NOT_FOUND('Owner')), req, 404);
             }
-
-            console.log("Owner exists...");
-
-            console.log("Checking the owner's account status...");
-
+    
             if (!ownerDetails.isActive || !ownerDetails.isDatabaseReady || !ownerDetails.isCollectionReady) {
                 let issues = [];
             
@@ -343,11 +298,7 @@ export default {
             
                 return httpError(next, new Error(responseMessage.CUSTOM_ERROR(issues)), req, 401);
             }
-
-            console.log("Owner's account status is active...");
-
-            console.log("Payload for Registering public user...");
-
+    
             const payload = {
                 workspaceName: workspaceName,
                 portfolioName: portfolioName,
@@ -362,37 +313,25 @@ export default {
                 ownerId: ownerDetails._id,
                 role: EUserRoles.PUBLICUSER,
                 apiKey: ownerDetails.apiKey,
-            }
-
-            console.log("Registering public user...");
-            
-            const newUser = await databaseService.registerPublic(payload)
-
-            if(!newUser) {
-
-                console.log("Failed to register public user...");
+            };
+    
+            const newUser = await databaseService.registerPublic(payload);
+    
+            if (!newUser) {
                 return httpError(next, new Error(responseMessage.SOMETHING_WENT_WRONG), req, 500);
             }
-
-            console.log("Added to Q or redis server...");
-
-            saveUserToDatacubeServices(newUser)
-
-            console.log("Public user registered successfully...");
-            console.log("Updating login info...");
-
+    
+            saveUserToDatacubeServices(newUser);
+    
             const accessToken = quicker.generateToken(
                 {
                     userId: newUser.id
                 },
                 config.ACCESS_TOKEN.SECRET,
                 config.ACCESS_TOKEN.EXPIRY
-            )
-
-            console.log("Generating domain..");
-            const DOMAIN = quicker.getDomainFromUrl(config.SERVER_URL)
-            
-            console.log("Generating access token..");
+            );
+    
+            const DOMAIN = quicker.getDomainFromUrl(config.SERVER_URL);
             
             res.cookie('accessToken', accessToken, {
                 path: '/api/v1',
@@ -401,23 +340,48 @@ export default {
                 maxAge: 1000 * config.ACCESS_TOKEN.EXPIRY,
                 httpOnly: true,
                 secure: !(config.ENV === EApplicationEnvironment.DEVELOPMENT)
-            })
-            
-            console.log("Access token sent successfully...");
-            console.log("Sending response...");
-
-            httpResponse(req, res, 200, responseMessage.SUCCESS,{
-                accessToken
             });
-
+    
+            return httpResponse(req, res, 200, responseMessage.SUCCESS, { accessToken });
+    
         } catch (err) {
-            httpError(next, err, req, 500);
+            return httpError(next, err, req, 500);
         }
     },
     selfIdentification: (req, res, next) => {
         try {
             const { authenticatedUser } = req
             httpResponse(req, res, 200, responseMessage.SUCCESS, authenticatedUser)
+        } catch (err) {
+            httpError(next, err, req, 500);
+        }
+    },
+    createCubeQrcodeForPublic: async (req, res, next) => {
+        try {
+            const { authenticatedUser } = req;
+            const { body } = req;
+
+            // const { value, error } = validateJoiSchema(ValidateCreateCubeQrcodeForPublicBody, body);
+            // if (error) {
+            //     return httpError(next, error, req, 422);
+            // }
+            const userPayload = {
+                portfolioId: authenticatedUser.portfolioId,
+                workspaceId: authenticatedUser.workspaceId,
+                createdBy: authenticatedUser.role,
+                apiKey: authenticatedUser.apiKey,
+                publicUserId: authenticatedUser._id,
+            }
+
+            const cubeQrCodeExists = await databaseService.findCubeQrcodeBy(authenticatedUser._id,portfolioId,workspaceId);
+            if(cubeQrCodeExists){
+                return httpError(next, new Error(responseMessage.CUSTOM_ERROR('Cube Qr Code exist for the user')), req, 409);
+            }
+
+            
+            httpResponse(req, res, 200, responseMessage.SUCCESS,{
+                userPayload
+            });
         } catch (err) {
             httpError(next, err, req, 500);
         }

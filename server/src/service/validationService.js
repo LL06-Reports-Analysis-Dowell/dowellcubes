@@ -23,6 +23,13 @@ export const ValidatePublicLoginBody = Joi.object({
     portfolioName: Joi.string().trim().required(),
     password: Joi.string().trim().required(),
 })
+
+export const ValidateCreateCubeQrcodeForPublicBody = Joi.object({
+    workspaceName: Joi.string().trim().required(),
+    portfolioName: Joi.string().trim().required()
+    
+})
+
 export const validateJoiSchema = (schema, value) => {
     const result = schema.validate(value);
     return {

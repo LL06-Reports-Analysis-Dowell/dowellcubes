@@ -6,3 +6,8 @@ database name = 6385c0f18eca0fb652c94558_dowellcube_database
 user collection name = 6385c0f18eca0fb652c94558_dowellcube_user
 location collection name = 6385c0f18eca0fb652c94558_dowellcube_location
 cubes collection name = 6385c0f18eca0fb652c94558_dowellcube_cubes
+
+
+
+workspaceId
+workspaceName

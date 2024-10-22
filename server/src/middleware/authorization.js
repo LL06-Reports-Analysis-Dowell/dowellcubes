@@ -1,5 +1,5 @@
-import httpError from '../util/httpError';
-import responseMessage from '../constant/responseMessage';
+import httpError from '../util/httpError.js';
+import responseMessage from '../constant/responseMessage.js';
 
 export default (roles) => {
     return (req, _res, next) => {
