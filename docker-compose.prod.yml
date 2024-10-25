@@ -43,6 +43,7 @@ services:
       - cache
     env_file: 
       - ./.env.production
+    restart: always
     volumes:
       - ./server/src:/usr/src/app/src
       - ./server/package.json:/usr/src/app/package.json
