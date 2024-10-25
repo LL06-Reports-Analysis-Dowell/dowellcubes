@@ -13,6 +13,8 @@ import AdminSignupPage from './Pages/Auth/SignupPage/AdminSignupPage';
 import LogoutPage from './Pages/Dashboard/DashboardPages/LogoutPage';
 import PreferencePage from './Pages/Dashboard/DashboardPages/PreferencePage';
 import NotFoundPage from './Pages/PageNotFound/NotFoundPage';
+import WelcomePage from './Pages/Home/WelcomePage';
+
 
 const App = () => {
   return (
@@ -30,6 +32,8 @@ const App = () => {
         {/* Healthcheck Route */}
         <Route path="/dowellcubes/healthcheck" element={<Healthcheck />} />
         <Route path="/dowellcubes/page-not-found" element={<NotFoundPage />} />
+        <Route path="/dowellcubes" element={<WelcomePage />} />
+        <Route path="/" element={<WelcomePage />} />
 
         {/* Dashboard Routes */}
         <Route path="/dowellcubes/dashboard" element={<DashboardPage />}>
