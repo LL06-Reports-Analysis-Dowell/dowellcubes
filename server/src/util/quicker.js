@@ -69,7 +69,7 @@ export default {
     generateFileName,
 
     createQrcode: async (data,portfolioId, qrcodeColor = '#000000') => {
-        const qrcodeLink = `${config.SERVER_URL}/${portfolioId}/${data}`;
+        const qrcodeLink = `${config.SERVER_URL}/link/${portfolioId}/${data}`;
 
         try {
             const qrCodeData = await QRCode.toBuffer(qrcodeLink, {

@@ -18,7 +18,7 @@ app.use(cookieParser());
 
 app.use('/api/v1', router);
 
-app.get('/:portfolioId/:qrcodeId', async (req, res) => {
+app.get('/link/:portfolioId/:qrcodeId', async (req, res) => {
     try {
         const { portfolioId, qrcodeId } = req.params;
 
