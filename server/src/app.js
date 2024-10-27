@@ -22,25 +22,29 @@ app.get('/:portfolioId/:qrcodeId', async (req, res) => {
     try {
         const { portfolioId, qrcodeId } = req.params;
 
-        const result = await databaseService.findOriginalLink(portfolioId, qrcodeId)
+        console.log("Received parameters - portfolioId:", portfolioId, "qrcodeId:", qrcodeId);
 
-        console.log(result);
-        
+        const result = await databaseService.findOriginalLink(portfolioId, qrcodeId);
+
+        console.log("Database query result:", result);
 
         if (result && result.cubeQrocdeDetails.length > 0) {
             const originalLink = result.cubeQrocdeDetails[0].originalLink;
+            console.log("Redirecting to original link:", originalLink);
             return res.redirect(originalLink);
         } else {
-            return res.redirect(`${config.FRONTEND_URL}/page-not-found`)
+            console.log("No matching QR code found. Redirecting to page not found.");
+            return res.redirect(`${config.FRONTEND_URL}/page-not-found`);
         }
     } catch (err) {
-        console.error(err);
+        console.error("Error occurred:", err);
         return res.status(500).json({
             success: false,
             message: 'Internal Server Error'
         });
     }
 });
+
 
 app.use((req, res, next) => {
     try {
