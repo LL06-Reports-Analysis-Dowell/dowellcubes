@@ -10,7 +10,6 @@ import AdminSigninPage from './Pages/Auth/SigninPage/AdminSigninPage';
 import PublicSigninPage from './Pages/Auth/SigninPage/PublicSigninPage';
 import PublicSignupPage from './Pages/Auth/SignupPage/PublicSignupPage';
 import AdminSignupPage from './Pages/Auth/SignupPage/AdminSignupPage';
-import LogoutPage from './Pages/Dashboard/DashboardPages/LogoutPage';
 import PreferencePage from './Pages/Dashboard/DashboardPages/PreferencePage';
 import NotFoundPage from './Pages/PageNotFound/NotFoundPage';
 import WelcomePage from './Pages/Home/WelcomePage';
@@ -41,7 +40,6 @@ const App = () => {
           <Route path="download" element={<DownloadPage />} />
           <Route path="setting" element={<SettingPage />} />
           <Route path="preference" element={<PreferencePage />} />
-          <Route path="logout" element={<LogoutPage />} />
         </Route>
       </Routes>
     </>
