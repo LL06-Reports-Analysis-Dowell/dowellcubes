@@ -22,7 +22,7 @@ const App = () => {
       <Toaster reverseOrder={false} />
       <Routes>
         {/* Auth Routes */}
-        <Route path="/auth" element={<Outlet />}>
+        <Route path="/dowellcubes/auth" element={<Outlet />}>
           <Route path="signin/admin" element={<AdminSigninPage />} />
           <Route path="signin/public" element={<PublicSigninPage />} />
           <Route path="signup/public" element={<PublicSignupPage />} />
@@ -30,13 +30,12 @@ const App = () => {
         </Route>
 
         {/* Healthcheck Route */}
-        <Route path="/healthcheck" element={<Healthcheck />} />
+        <Route path="/dowellcubes/healthcheck" element={<Healthcheck />} />
         <Route path="/page-not-found" element={<NotFoundPage />} />
-        {/* <Route path="/dowellcubes" element={<WelcomePage />} /> */}
-        <Route path="/" element={<WelcomePage />} />
+        <Route path="/dowellcubes" element={<WelcomePage />} />
 
         {/* Dashboard Routes */}
-        <Route path="/dashboard" element={<DashboardPage />}>
+        <Route path="/dowellcubes/dashboard" element={<DashboardPage />}>
           <Route index element={<HomePage />} />
           <Route path="report" element={<ReportPage />} />
           <Route path="download" element={<DownloadPage />} />
