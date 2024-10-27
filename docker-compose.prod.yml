@@ -14,7 +14,7 @@ services:
     restart: always
 
   client:
-    container_name: client
+    container_name: client_container
     build:
       context: ./client
       dockerfile: docker/production/Dockerfile
@@ -32,7 +32,7 @@ services:
       - queue-net
 
   server:
-    container_name: server
+    container_name: server_container
     build:
       context: ./server
       dockerfile: docker/production/Dockerfile
