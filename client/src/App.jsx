@@ -30,7 +30,7 @@ const App = () => {
         </Route>
 
         {/* Healthcheck Route */}
-        <Route path="/healthcheck" element={<Healthcheck />} />
+        <Route path="/dowellcubes/healthcheck" element={<Healthcheck />} />
         <Route path="/page-not-found" element={<NotFoundPage />} />
         <Route path="/dowellcubes" element={<WelcomePage />} />
 
