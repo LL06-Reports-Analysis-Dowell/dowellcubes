@@ -40,7 +40,7 @@ const App = () => {
           <Route path="report" element={<ReportPage />} />
           <Route path="download" element={<DownloadPage />} />
           <Route path="setting" element={<SettingPage />} />
-          <Route path="preferences" element={<PreferencePage />} />
+          <Route path="preference" element={<PreferencePage />} />
           <Route path="logout" element={<LogoutPage />} />
         </Route>
       </Routes>

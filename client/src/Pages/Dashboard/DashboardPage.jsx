@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, Outlet } from 'react-router-dom';
 import { dashboardConfig } from './dashboardConfig';
 import { FaSignOutAlt } from 'react-icons/fa';
+import { toast } from 'react-hot-toast';
 
 const DashboardPage = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -10,9 +11,15 @@ const DashboardPage = () => {
   const toggleMobileMenu = () => setIsMobileMenuOpen((prev) => !prev);
 
   const handleLogout = () => {
+    // Clear the access token and any user-related data from local storage
+    localStorage.removeItem('accessToken');
+
     console.log('User logged out');
-    navigate('/auth/signin');
-  };
+
+    toast.success('Successfully logged out!');
+
+    navigate('/auth/signin/public');
+};
 
   return (
     <div className="flex min-h-screen">

@@ -260,10 +260,11 @@ export default {
                 res.cookie('accessToken', accessToken, {
                     path: '/api/v1',
                     domain: DOMAIN,
+                    sameSite: 'lax',
                     sameSite: 'strict',
                     maxAge: 1000 * config.ACCESS_TOKEN.EXPIRY,
                     httpOnly: true,
-                    secure: !(config.ENV === EApplicationEnvironment.DEVELOPMENT)
+                    secure: config.ENV !== EApplicationEnvironment.DEVELOPMENT
                 });
     
                 return httpResponse(req, res, 200, responseMessage.SUCCESS, { accessToken });

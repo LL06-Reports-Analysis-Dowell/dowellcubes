@@ -10,7 +10,7 @@ export const dashboardConfig = {
     { label: 'Home', icon: FaHome, path: '/' },
     { label: 'Report', icon: FaFileAlt, path: '/report' },
     { label: 'Download', icon: FaFileDownload, path: '/download' }, 
-    { label: 'Preferences', icon: FaClipboardList, path: '/preference' }, // Updated icon
+    { label: 'Preference', icon: FaClipboardList, path: '/preference' }, // Updated icon
     { label: 'Settings', icon: FaCog, path: '/setting' }
   ]
 };
