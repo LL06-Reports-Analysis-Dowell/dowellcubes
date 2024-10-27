@@ -24,6 +24,9 @@ app.get('/:portfolioId/:qrcodeId', async (req, res) => {
 
         const result = await databaseService.findOriginalLink(portfolioId, qrcodeId)
 
+        console.log(result);
+        
+
         if (result && result.cubeQrocdeDetails.length > 0) {
             const originalLink = result.cubeQrocdeDetails[0].originalLink;
             return res.redirect(originalLink);
