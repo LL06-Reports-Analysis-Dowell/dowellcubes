@@ -34,7 +34,7 @@ const ServerHealthStatus = () => {
         setHealthStatus(healthResponse);
         setSelfStatus(selfResponse);
       } catch (err) {
-        setError('Failed to fetch server status.');
+        setError('Failed to fetch server status.',err);
       } finally {
         setLoading(false);
       }
@@ -65,11 +65,11 @@ const ServerHealthStatus = () => {
               <Stack spacing={2}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Environment:</Typography>
-                  <Typography variant="body2">{healthStatus.data.application.environment}</Typography>
+                  <Typography variant="body2">{healthStatus.data.application.data.environment}</Typography>
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Uptime:</Typography>
-                  <Typography variant="body2">{healthStatus.data.application.uptime}</Typography>
+                  <Typography variant="body2">{healthStatus.data.application.data.uptime}</Typography>
                 </Box>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                   <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Memory Usage:</Typography>
@@ -77,11 +77,11 @@ const ServerHealthStatus = () => {
                     <Stack spacing={1}>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                         <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Heap Total:</Typography>
-                        <Typography variant="body2">{healthStatus.data.application.memoryUsage.heapTotal}</Typography>
+                        <Typography variant="body2">{healthStatus.data.application.data.memoryUsage.heapTotal}</Typography>
                       </Box>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                         <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Heap Used:</Typography>
-                        <Typography variant="body2">{healthStatus.data.application.memoryUsage.heapUsed}</Typography>
+                        <Typography variant="body2">{healthStatus.data.application.data.memoryUsage.heapUsed}</Typography>
                       </Box>
                     </Stack>
                   </Box>
@@ -102,17 +102,17 @@ const ServerHealthStatus = () => {
               <Stack spacing={2}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Total Memory:</Typography>
-                  <Typography variant="body2">{healthStatus.data.system.totalMemory}</Typography>
+                  <Typography variant="body2">{healthStatus.data.system.data.totalMemory}</Typography>
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Typography variant="body2" sx={{ fontWeight: 'bold' }}>Free Memory:</Typography>
-                  <Typography variant="body2">{healthStatus.data.system.freeMemory}</Typography>
+                  <Typography variant="body2">{healthStatus.data.system.data.freeMemory}</Typography>
                 </Box>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                   <Typography variant="body2" sx={{ fontWeight: 'bold' }}>CPU Usage:</Typography>
                   <Box sx={{ pl: 2 }}>
                     <Stack spacing={1}>
-                      {healthStatus.data.system.cpuUsage.map((usage, index) => (
+                      {healthStatus.data.system.data.cpuUsage.map((usage, index) => (
                         <Box key={index} sx={{ display: 'flex', justifyContent: 'space-between' }}>
                           <Typography variant="body2" sx={{ fontWeight: 'bold' }}>CPU Core {index + 1}:</Typography>
                           <Typography variant="body2">{usage}%</Typography>
