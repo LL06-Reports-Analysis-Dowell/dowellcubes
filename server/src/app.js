@@ -16,7 +16,7 @@ app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
 
-app.use('/api/v1', router);
+app.use('/v1', router);
 
 app.get('/link/:portfolioId/:qrcodeId', async (req, res) => {
     try {
