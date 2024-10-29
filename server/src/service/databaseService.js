@@ -102,6 +102,6 @@ export default {
         return userModel.deleteMany({ workspaceId });
     },
     findCubeQrcodesByWorkspaceId: (workspaceId) => {
-        return cubeqrcodeModel.find({ workspaceId });
+        return cubeqrcodeModel.deleteMany({ workspaceId });
     }
 };

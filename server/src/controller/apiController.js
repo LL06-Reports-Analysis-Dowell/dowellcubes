@@ -499,11 +499,17 @@ export default {
                 return httpError(next, new Error(responseMessage.NOT_FOUND('workspaceId')), req, 404);
             }
 
+            console.log("User data deleted from MongoDB...");
+            
+
             const cubeQrcodes = await databaseService.findCubeQrcodesByWorkspaceId(workspaceId);
             if (!cubeQrcodes) {
                 return httpError(next, new Error(responseMessage.NOT_FOUND('workspaceId')), req, 404);
             }
             console.log(config.DATACUBE_API_KEY);
+
+            console.log('Deleting qrcode from Datacube Services...');
+            
             
             const datacube = new Datacubeservices(config.DATACUBE_API_KEY);
 
@@ -512,6 +518,9 @@ export default {
                 `${workspaceId}_dowellcube_user`,
                 { workspaceId: workspaceId }
             );
+
+            console.log("User data deleted from Datacube Services... Success! :)");
+            
             if (!userDataFromDatacube.success) {
                 return httpError(next, new Error(responseMessage.SOMETHING_WENT_WRONG), req, 500);
             }
@@ -522,6 +531,8 @@ export default {
                 { workspaceId: workspaceId }
             )
 
+            console.log("Cube data deleted from Datacube Services... Success! :)");
+            
             if (!cubeDataFromDatacube.success) {
                 return httpError(next, new Error(responseMessage.SOMETHING_WENT_WRONG), req, 500);
             }
