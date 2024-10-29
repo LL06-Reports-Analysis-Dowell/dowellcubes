@@ -19,8 +19,10 @@ const config ={
     REDIS_HOST: process.env.REDIS_HOST,
     REDIS_PORT: process.env.REDIS_PORT,
     REDIS_PASSWORD: process.env.REDIS_PASSWORD,
-    DATDATACUBE_API_KEY : process.env.DATDATACUBE_API_KEY
+    DATACUBE_API_KEY : process.env.DATACUBE_API_KEY
 }
+
+console.log(config);
 
 
 export default config;

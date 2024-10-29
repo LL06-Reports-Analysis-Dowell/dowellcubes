@@ -22,26 +22,48 @@ app.get('/:portfolioId/:qrcodeId', async (req, res) => {
     try {
         const { portfolioId, qrcodeId } = req.params;
 
-        console.log("Received parameters - portfolioId:", portfolioId, "qrcodeId:", qrcodeId);
+        console.log("Processing QR code redirect request:", {
+            portfolioId,
+            qrcodeId,
+            timestamp: new Date().toISOString()
+        });
 
         const result = await databaseService.findOriginalLink(portfolioId, qrcodeId);
 
-        console.log("Database query result:", result);
-
-        if (result && result.cubeQrocdeDetails.length > 0) {
-            const originalLink = result.cubeQrocdeDetails[0].originalLink;
-            console.log("Redirecting to original link:", originalLink);
-            return res.redirect(originalLink);
-        } else {
-            console.log("No matching QR code found. Redirecting to page not found.");
+        if (!result || !result.cubeQrocdeDetails || result.cubeQrocdeDetails.length === 0) {
+            console.warn("No QR code found for redirect:", { portfolioId, qrcodeId });
             return res.redirect(`${config.FRONTEND_URL}/page-not-found`);
         }
-    } catch (err) {
-        console.error("Error occurred:", err);
-        return res.status(500).json({
-            success: false,
-            message: 'Internal Server Error'
+
+        const qrCodeDetail = result.cubeQrocdeDetails[0];
+        
+        if (!qrCodeDetail.originalLink) {
+            console.error("Original link missing for QR code:", {
+                portfolioId,
+                qrcodeId,
+                name: qrCodeDetail.name
+            });
+            return res.redirect(`${config.FRONTEND_URL}/page-not-found`);
+        }
+
+        console.log("Redirecting QR code scan:", {
+            portfolioId,
+            qrcodeId,
+            name: qrCodeDetail.name,
+            originalLink: qrCodeDetail.originalLink
         });
+
+        return res.redirect(qrCodeDetail.originalLink);
+
+    } catch (err) {
+        console.error("Error processing QR code redirect:", {
+            portfolioId: req.params.portfolioId,
+            qrcodeId: req.params.qrcodeId,
+            error: err.message,
+            stack: err.stack
+        });
+
+        return res.redirect(`${config.FRONTEND_URL}/error`);
     }
 });
 

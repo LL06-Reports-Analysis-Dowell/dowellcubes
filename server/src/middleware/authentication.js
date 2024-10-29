@@ -6,11 +6,10 @@ import responseMessage from '../constant/responseMessage.js';
 
 export default async (req, _res, next) => {
     try {
-        const authHeader = req.headers.authorization;
-
-        if (authHeader && authHeader.startsWith('Bearer ')) {
-            const accessToken = authHeader.split(' ')[1];
-            const { userId } = quicker.verifyToken(accessToken, config.ACCESS_TOKEN.SECRET);
+        const token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ", "");
+        
+        if (token) {
+            const { userId } = quicker.verifyToken(token, config.ACCESS_TOKEN.SECRET);
             
             let user = await databaseService.findUserById(userId);
 

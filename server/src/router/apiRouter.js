@@ -17,6 +17,7 @@ router.route('/self-identification').get(authentication,apiController.selfIdenti
 router.route('/create-cubes-qrcode').post(authentication,authorize([EUserRoles.ADMIN,EUserRoles.PUBLICUSER]),apiController.createCubeQrcodeForPublic)
 router.route('/cubes-qrcode').get(authentication,authorize([EUserRoles.PUBLICUSER]),apiController.getCubeQrcodesByPortfolio)
 router.route('/cube-qrcode-details/:cubeQrcodeId').get(authentication,authorize([EUserRoles.PUBLICUSER]),apiController.getSpecificQrcodeDetails)
+router.route('/delete-cubes-data/:workspaceId').delete(apiController.deleteCubesData)
 
 
 export default router

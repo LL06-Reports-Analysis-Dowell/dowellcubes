@@ -10,4 +10,5 @@ export default {
     UNAUTHORIZED: `You are not authorized to perform this action`,
     INCORRECT_PASSWORD: `Provided password is incorrect`,
     CUSTOM_ERROR: (entity) => `${entity}`,
+    REQUIRED_FIELD: (field) => `${field} is required`,
 };

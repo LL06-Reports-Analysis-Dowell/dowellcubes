@@ -11,6 +11,7 @@ import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc.js';
 import { EApplicationEnvironment } from '../constant/application.js';
 import { EUserRoles } from '../constant/enumConstant.js';
+import Datacubeservices from '../service/datacubeService.js';
 
 dayjs.extend(utc); 
 
@@ -487,5 +488,47 @@ export default {
             httpError(next, err, req, 500);
         }
     },
-    
+    deleteCubesData: async(req, res, next) => {
+        try {
+            const { workspaceId } = req.params;
+            if (!workspaceId) {
+                return httpError(next, new Error(responseMessage.REQUIRED_FIELD('workspaceId')), req, 422);
+            }
+            const userData = await databaseService.findUserDataByWorkSpaceIdAndDelete(workspaceId);
+            if (!userData) {
+                return httpError(next, new Error(responseMessage.NOT_FOUND('workspaceId')), req, 404);
+            }
+
+            const cubeQrcodes = await databaseService.findCubeQrcodesByWorkspaceId(workspaceId);
+            if (!cubeQrcodes) {
+                return httpError(next, new Error(responseMessage.NOT_FOUND('workspaceId')), req, 404);
+            }
+            console.log(config.DATACUBE_API_KEY);
+            
+            const datacube = new Datacubeservices(config.DATACUBE_API_KEY);
+
+            const userDataFromDatacube = await datacube.dataDelete(
+                `${workspaceId}_dowellcube_database`,
+                `${workspaceId}_dowellcube_user`,
+                { workspaceId: workspaceId }
+            );
+            if (!userDataFromDatacube.success) {
+                return httpError(next, new Error(responseMessage.SOMETHING_WENT_WRONG), req, 500);
+            }
+
+            const cubeDataFromDatacube = await datacube.dataDelete(
+                `${workspaceId}_dowellcube_database`,
+                `${workspaceId}_dowellcube_cubes`,
+                { workspaceId: workspaceId }
+            )
+
+            if (!cubeDataFromDatacube.success) {
+                return httpError(next, new Error(responseMessage.SOMETHING_WENT_WRONG), req, 500);
+            }
+
+            httpResponse(req, res, 200, responseMessage.SUCCESS);
+        } catch (err) {
+            httpError(next, err, req, 500);
+        }
+    },
 };

@@ -62,12 +62,46 @@ export default {
     findCubeQrcodeByQrcodeId:(portfolioId,workspaceId) => {
         return cubeqrcodeModel.findOne({ portfolioId, workspaceId })
     }, 
-    findOriginalLink: (portfolioId, qrcodeId) => {
-        return cubeqrcodeModel.findOne({
+    findOriginalLink: async (portfolioId, qrcodeId) => {
+        console.log("Executing database query:", {
             portfolioId,
-            'cubeQrocdeDetails.qrcodeId': qrcodeId,
-            'cubeQrocdeDetails.originalLink': { $exists: true }
-        }, { 'cubeQrocdeDetails.$': 1 });
+            qrcodeId,
+            timestamp: new Date().toISOString()
+        });
+
+        // The previous query was using incorrect projection which might filter out valid results
+        const result = await cubeqrcodeModel.findOne(
+            {
+                portfolioId,
+                'cubeQrocdeDetails.qrcodeId': qrcodeId
+            }
+        );
+
+        // If we found a result, find the matching QR code details
+        if (result && result.cubeQrocdeDetails) {
+            const matchingQRCode = result.cubeQrocdeDetails.find(
+                qr => qr.qrcodeId === qrcodeId
+            );
+
+            if (matchingQRCode) {
+                // Return in the same format as before for compatibility
+                return {
+                    cubeQrocdeDetails: [matchingQRCode]
+                };
+            }
+        }
+
+        console.log("Database query completed:", {
+            found: !!result,
+            hasMatchingQRCode: !!(result?.cubeQrocdeDetails?.find(qr => qr.qrcodeId === qrcodeId))
+        });
+
+        return null;
+    },
+    findUserDataByWorkSpaceIdAndDelete: (workspaceId) => {
+        return userModel.deleteMany({ workspaceId });
+    },
+    findCubeQrcodesByWorkspaceId: (workspaceId) => {
+        return cubeqrcodeModel.find({ workspaceId });
     }
-    
 };
