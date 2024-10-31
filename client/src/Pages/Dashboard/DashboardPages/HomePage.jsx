@@ -1,8 +1,9 @@
+
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { getCubeQRcode } from '../../../services/api.services';
-import { Loader, Compass, Mouse, RotateCcw, Smartphone } from 'lucide-react';
+import { Loader, RotateCcw } from 'lucide-react';
 
 const HomePage = () => {
   const [qrData, setQrData] = useState(null);
@@ -14,7 +15,7 @@ const HomePage = () => {
   const [dragDistance, setDragDistance] = useState(0);
   const cubeRef = useRef(null);
   const navigate = useNavigate();
-  const dragThreshold = 10; // Slightly higher to avoid accidental drags
+  const dragThreshold = 10; 
 
   useEffect(() => {
     fetchQRData();
@@ -140,11 +141,15 @@ const HomePage = () => {
       <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8 flex flex-col items-center">
         {/* Welcome Section */}
         <div className="text-center mb-16">
-          <div className="inline-block p-2 bg-indigo-100 rounded-2xl mb-6">
-            <Compass className="h-12 w-12 text-indigo-600" />
+          <div className="inline-block p-2 rounded-2xl mb-6">
+          <img
+            src="https://dowellfileuploader.uxlivinglab.online/hr/logo-2-min-min.png"
+            alt="Company Logo"
+            className="h-20 w-20 mb-2"
+          />
           </div>
           <h1 className="text-5xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-6">
-            Welcome to DoWell Cube! 👋
+            DoWell QR Cube! 👋
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Explore your QR codes in an interactive 3D space. Rotate the cube and tap any QR code to open its link!
@@ -203,10 +208,10 @@ const HomePage = () => {
                   <div className="p-6 h-full flex flex-col items-center justify-center">
                     <button 
                       className="bg-white p-4 rounded-xl shadow-sm mb-4 transform hover:scale-105 transition-transform duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                      onClick={(e) => handleQRCodeClick(e, qr.redirectUrl)}
+                      onClick={(e) => handleQRCodeClick(e, qr.qrcodeLink)}
                       onTouchEnd={(e) => {
                         e.preventDefault();
-                        if (!isDragging) handleQRCodeClick(e, qr.redirectUrl);
+                        if (!isDragging) handleQRCodeClick(e, qr.qrcodeLink);
                       }}
                     >
                       <img 
