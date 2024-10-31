@@ -2,7 +2,7 @@ import httpResponse from '../util/httpResponse.js';
 import responseMessage from '../constant/responseMessage.js';
 import httpError from '../util/httpError.js';
 import quicker from '../util/quicker.js';
-import { ValidateCreateCollectionBody, validateJoiSchema, ValidateRegisterBody, ValidateAdminLoginBody,ValidatePublicLoginBody,ValidateCreateCubeQrcodeForPublicBody } from '../service/validationService.js';
+import { ValidateCreateCollectionBody, validateJoiSchema, ValidateRegisterBody, ValidateAdminLoginBody,ValidatePublicLoginBody,ValidateCreateCubeQrcodeForPublicBody, ValidateShareCubeQrcodes } from '../service/validationService.js';
 import Datacubeservice from '../service/datacubeService.js';
 import databaseService from '../service/databaseService.js';
 import { saveCubeQrcodeToDatacubeServices, saveUserToDatacubeServices,updateDatabaseAndCollectionStatusServices } from '../service/producerService.js';
@@ -538,6 +538,31 @@ export default {
             }
 
             httpResponse(req, res, 200, responseMessage.SUCCESS);
+        } catch (err) {
+            httpError(next, err, req, 500);
+        }
+    },
+    shareCubeQrcode: async (req, res, next) => {
+        try {
+            const { body } = req
+
+            const { value, error } = validateJoiSchema(ValidateShareCubeQrcodes, body);
+            if (error) {
+                return httpError(next, error, req, 422);
+            }
+            const { portfolioId, workspaceId, portfolioName } = value;
+
+            const existingCubeQrcode = await databaseService.findCubeQrcode(
+                portfolioId,
+                workspaceId,
+                portfolioName
+            )
+
+            if(!existingCubeQrcode) {
+                return httpError(next, new Error(responseMessage.CUSTOM_ERROR('Please create cube qrcode')) , req, 404);
+            }
+
+            httpResponse(req, res, 200, responseMessage.SUCCESS, existingCubeQrcode);
         } catch (err) {
             httpError(next, err, req, 500);
         }

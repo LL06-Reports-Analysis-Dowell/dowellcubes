@@ -41,6 +41,11 @@ export const ValidateCreateCubeQrcodeForPublicBody = Joi.object({
     .required()
 });
 
+export const ValidateShareCubeQrcodes = Joi.object({
+    portfolioId: Joi.string().required(),
+    workspaceId: Joi.string().required(),
+    portfolioName: Joi.string().required()
+})
 export const validateJoiSchema = (schema, value) => {
     const result = schema.validate(value);
     return {

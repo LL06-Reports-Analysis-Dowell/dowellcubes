@@ -33,3 +33,8 @@ export const getCubeQRcode = async (accessToken) => {
   });
   return response.data;
 }
+
+export const shareCube = async (data) => {
+  const response = await servicesAxiosInstance.post('/v1/share-cubes-qrcode/', data);
+  return response.data;
+};

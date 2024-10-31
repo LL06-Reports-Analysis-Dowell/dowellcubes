@@ -13,6 +13,7 @@ import AdminSignupPage from './Pages/Auth/SignupPage/AdminSignupPage';
 import PreferencePage from './Pages/Dashboard/DashboardPages/PreferencePage';
 import NotFoundPage from './Pages/PageNotFound/NotFoundPage';
 import WelcomePage from './Pages/Home/WelcomePage';
+import ShareCube from './Pages/ShareCube/ShareCube';
 
 
 const App = () => {
@@ -32,6 +33,7 @@ const App = () => {
         <Route path="/healthcheck" element={<Healthcheck />} />
         <Route path="/page-not-found" element={<NotFoundPage />} />
         <Route path="/" element={<WelcomePage />} />
+        <Route path="/share" element={<ShareCube />} />
 
         {/* Dashboard Routes */}
         <Route path="/dashboard" element={<DashboardPage />}>

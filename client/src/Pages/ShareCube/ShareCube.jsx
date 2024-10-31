@@ -1,10 +1,10 @@
 import { useEffect, useState, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'react-hot-toast'
-import { getCubeQRcode } from '../../../services/api.services'
 import { Loader, RotateCcw } from 'lucide-react'
+import { shareCube } from '../../services/api.services'
 
-const HomePage = () => {
+const ShareCube = () => {
     const [qrData, setQrData] = useState(null)
     const [loading, setLoading] = useState(true)
     const [isDragging, setIsDragging] = useState(false)
@@ -12,26 +12,29 @@ const HomePage = () => {
     const [lastPosition, setLastPosition] = useState({ x: 0, y: 0 })
     const [startPosition, setStartPosition] = useState({ x: 0, y: 0 })
     const [dragDistance, setDragDistance] = useState(0)
-    const [modalOpen, setModalOpen] = useState(false)
     const cubeRef = useRef(null)
     const navigate = useNavigate()
     const dragThreshold = 10
+
+    const location = useLocation();
+    const searchParams = new URLSearchParams(location.search);
 
     useEffect(() => {
         fetchQRData()
     }, [])
 
     const fetchQRData = async () => {
-        const accessToken = localStorage.getItem('accessToken')
-        if (!accessToken) {
-            toast.error('Please log in to access this page.')
-            navigate('/auth/sign-in/public')
-            return
-        }
-
+        const portfolioId = searchParams.get('portfolioId');
+        const workspaceId = searchParams.get('workspaceId');
+        const portfolioName = searchParams.get('portfolioName');
         try {
+            const data = {
+                portfolioId ,
+                workspaceId ,
+                portfolioName
+            }
             setLoading(true)
-            const response = await getCubeQRcode(accessToken)
+            const response = await shareCube(data)
             if (response.success) {
                 setQrData(response.data)
             } else {
@@ -120,18 +123,6 @@ const HomePage = () => {
             window.open(url, '_blank', 'noopener,noreferrer')
         }
     }
-    
-    const shareLink = qrData
-        ? `https://www.dowellcube.uxlivinglab.online/share/?portfolioName=${qrData.portfolioName}&portfolioId=${qrData.portfolioId}&workspaceId=${qrData.workspaceId}`
-        : ''
-
-    const handleShareClick = () => {
-        setModalOpen(true)
-    }
-
-    const handleCloseModal = () => {
-        setModalOpen(false)
-    }
 
     if (loading) {
         return (
@@ -148,38 +139,18 @@ const HomePage = () => {
         <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 overflow-hidden">
             <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8 flex flex-col items-center">
                 {/* Welcome Section */}
-                <div className="text-center mb-16">
-                    <div className="inline-block p-2 rounded-2xl mb-6">
+                <div className="text-center">
+                    <div className="inline-block p-2 rounded-2xl">
                         <img
                             src="https://dowellfileuploader.uxlivinglab.online/hr/logo-2-min-min.png"
                             alt="Company Logo"
-                            className="h-20 w-20 mb-2"
+                            className="h-20 w-20"
                         />
                     </div>
-                    <h1 className="text-5xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-6">
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
                         DoWell QR Cube! 👋
                     </h1>
-                    <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                        Explore your QR codes in an interactive 3D space. Rotate the cube and tap any QR code to open its link!
-                    </p>
                 </div>
-
-                {/* Control Panel */}
-                <div className="flex flex-wrap justify-center mb-8 gap-4">
-                    <button
-                        onClick={resetRotation}
-                        className="flex items-center bg-white px-4 py-2 rounded-full shadow-md hover:bg-indigo-50 transition-colors duration-200">
-                        <RotateCcw className="h-5 w-5 text-indigo-600 mr-2" />
-                        <span className="text-gray-600">Reset view</span>
-                    </button>
-                    <button
-                        onClick={handleShareClick}
-                        className="flex items-center bg-green-500 px-4 py-2 rounded-full text-white shadow-md hover:bg-green-600 transition-colors duration-200">
-                        Share
-                    </button>
-                </div>
-
-                {/* 3D Cube */}
                 <div
                     ref={cubeRef}
                     className="perspective-1000 mx-auto w-full max-w-[450px] h-[450px] flex justify-center items-center touch-none"
@@ -235,51 +206,18 @@ const HomePage = () => {
                         })}
                     </div>
                 </div>
-            </div>
-
-            {/* Enhanced Share Modal */}
-            {modalOpen && (
-                <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 transition-opacity duration-300"
-                    onClick={handleCloseModal} // Backdrop click to close modal
-                >
-                    <div
-                        className="bg-white p-6 rounded-lg shadow-lg transform transition-transform duration-300 scale-100 opacity-100 relative max-w-md mx-auto"
-                        onClick={(e) => e.stopPropagation()} // Prevent click from closing when interacting with modal
-                        tabIndex={-1} // Enable focusable modal for accessibility
-                    >
-                        <button
-                            className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 transition-colors duration-150 focus:outline-none"
-                            onClick={handleCloseModal}
-                            aria-label="Close modal">
-                            ✕
-                        </button>
-
-                        <h2 className="text-2xl font-semibold mb-4 text-center text-indigo-900">Share this link</h2>
-                        <p className="mb-6 text-gray-700 text-center">{shareLink}</p>
-
-                        <div className="flex items-center justify-center gap-4">
-                            <button
-                                onClick={() => {
-                                    navigator.clipboard.writeText(shareLink)
-                                    toast.success('Link copied to clipboard!')
-                                }}
-                                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition duration-200">
-                                Copy Link
-                            </button>
-
-                            <button
-                                onClick={handleCloseModal}
-                                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition duration-200">
-                                Close
-                            </button>
-                        </div>
-                    </div>
+                <div className="flex flex-wrap justify-center mb-8 gap-4">
+                    <button
+                        onClick={resetRotation}
+                        className="flex items-center bg-white px-4 py-2 rounded-full shadow-md hover:bg-indigo-50 transition-colors duration-200">
+                        <RotateCcw className="h-5 w-5 text-indigo-600 mr-2" />
+                        <span className="text-gray-600">Reset view</span>
+                    </button>
                 </div>
-            )}
+            </div>
         </div>
     )
 }
 
-export default HomePage
+export default ShareCube
 
