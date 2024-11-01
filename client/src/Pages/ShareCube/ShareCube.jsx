@@ -29,8 +29,8 @@ const ShareCube = () => {
         const portfolioName = searchParams.get('portfolioName');
         try {
             const data = {
-                portfolioId ,
-                workspaceId ,
+                portfolioId,
+                workspaceId,
                 portfolioName
             }
             setLoading(true)
@@ -169,12 +169,12 @@ const ShareCube = () => {
                         }}>
                         {qrData?.cubeQrocdeDetails.slice(0, 6).map((qr, index) => {
                             const transforms = [
-                                'rotateY(0deg) translateZ(125px)',
-                                'rotateY(180deg) translateZ(125px)',
-                                'rotateY(90deg) translateZ(125px)',
-                                'rotateY(-90deg) translateZ(125px)',
-                                'rotateX(90deg) translateZ(125px)',
-                                'rotateX(-90deg) translateZ(125px)'
+                                'rotateY(0deg) translateZ(125px)',    // Front
+                                'rotateY(180deg) translateZ(125px)',  // Back
+                                'rotateY(90deg) translateZ(125px)',   // Right
+                                'rotateY(-90deg) translateZ(125px)',  // Left
+                                'rotateX(90deg) translateZ(125px)',   // Top
+                                'rotateX(-90deg) translateZ(125px)'   // Bottom
                             ]
 
                             return (
@@ -186,8 +186,9 @@ const ShareCube = () => {
                                         backfaceVisibility: 'hidden'
                                     }}>
                                     <div className="p-6 h-full flex flex-col items-center justify-center">
+                                        <h3 className="text-sm font-semibold text-indigo-900">{qr.name}</h3>
                                         <button
-                                            className="bg-white p-4 rounded-xl shadow-sm mb-4 transform hover:scale-105 transition-transform duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                            className="bg-white p-4 rounded-xl shadow-sm transform hover:scale-105 transition-transform duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                             onClick={(e) => handleQRCodeClick(e, qr.qrcodeLink)}
                                             onTouchEnd={(e) => {
                                                 e.preventDefault()
@@ -199,7 +200,7 @@ const ShareCube = () => {
                                                 className="w-40 h-40 object-contain pointer-events-none"
                                             />
                                         </button>
-                                        <h3 className="text-lg font-semibold text-indigo-900">{qr.name}</h3>
+                                        <h3 className="text-sm font-semibold text-indigo-900">{qr.name}</h3>
                                     </div>
                                 </div>
                             )
@@ -220,4 +221,3 @@ const ShareCube = () => {
 }
 
 export default ShareCube
-
