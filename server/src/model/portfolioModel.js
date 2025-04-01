@@ -69,8 +69,7 @@ const portfolioSchema = new mongoose.Schema({
     },
     apiKey: {
         type: String,
-        required: true,
-        unique: true
+        required: true
     }
 }, { timestamps: true });
 
