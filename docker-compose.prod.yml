@@ -21,7 +21,7 @@ services:
       context: ./client
       dockerfile: docker/production/Dockerfile
     ports:
-      - '8082:5173'  # Changed from 8081 to 8082 to avoid conflicts
+      - '9000:5173'  # Changed to 9000 to avoid conflicts
     restart: always
     env_file: 
       - ./.env.production
@@ -73,7 +73,7 @@ services:
       dockerfile: Dockerfile
     container_name: dowellcubes_nginx
     ports:
-      - '8082:80'  # Changed from 8081 to 8082 to avoid conflicts
+      - '9000:80'  # Changed to 9000 to avoid conflicts
     volumes:
       - ./nginx:/usr/src/app
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
