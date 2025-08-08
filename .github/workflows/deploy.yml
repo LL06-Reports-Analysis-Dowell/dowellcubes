@@ -55,7 +55,7 @@ jobs:
             echo "Creating .env.production file..."
             echo "ENV=production" > .env.production
             echo "PORT=5000" >> .env.production
-            echo "SERVER_URL=http://82.29.161.195:5000" >> .env.production
+            echo "SERVER_URL=http://82.29.161.195:9001" >> .env.production
             echo "FRONTEND_URL=http://82.29.161.195:9000" >> .env.production
             echo "DATABASE_URL=mongodb://dowellcubes_mongo_container:27017/dowellcubes" >> .env.production
             echo "REDIS_HOST=dowellcubes_cache_container" >> .env.production
@@ -64,7 +64,7 @@ jobs:
             echo "ACCESS_TOKEN_SECRET=dowellcubes_access_token_secret_2024_secure_key_here" >> .env.production
             echo "REFRESH_TOKEN_SECRET=dowellcubes_refresh_token_secret_2024_secure_key_here" >> .env.production
             echo "DATACUBE_API_KEY=your_datacube_api_key_here" >> .env.production
-            echo "VITE_SERVER_URL=http://82.29.161.195:5000/api" >> .env.production
+            echo "VITE_SERVER_URL=http://82.29.161.195:9001/api" >> .env.production
             echo "✅ .env.production created. Please update DATACUBE_API_KEY with your actual value."
           fi
 
@@ -88,7 +88,7 @@ jobs:
 
           echo "DowellCubes deployment completed successfully!"
           echo "Frontend available at: http://82.29.161.195:9000"
-          echo "Backend available at: http://82.29.161.195:5000"
+          echo "Backend available at: http://82.29.161.195:9001"
           echo ""
           echo "⚠️  IMPORTANT: Update DATACUBE_API_KEY in .env.production with your actual API key"
           ENDSSH
@@ -99,6 +99,6 @@ jobs:
           sleep 30  # Give services time to start
           echo "Validation successful: DowellCubes service is up and running."
           echo "Frontend: http://82.29.161.195:9000"
-          echo "Backend: http://82.29.161.195:5000"
+          echo "Backend: http://82.29.161.195:9001"
           echo ""
           echo "⚠️  Don't forget to update DATACUBE_API_KEY in .env.production on the server!"
