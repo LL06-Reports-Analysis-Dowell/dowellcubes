@@ -53,20 +53,18 @@ jobs:
           # Create .env.production if it doesn't exist
           if [ ! -f ".env.production" ]; then
             echo "Creating .env.production file..."
-            cat > .env.production << 'ENVEOF'
-ENV=production
-PORT=5000
-SERVER_URL=http://82.29.161.195:5000
-FRONTEND_URL=http://82.29.161.195:8080
-DATABASE_URL=mongodb://dowellcubes_mongo_container:27017/dowellcubes
-REDIS_HOST=dowellcubes_cache_container
-REDIS_PORT=6379
-REDIS_PASSWORD=dowellcubes_redis_2024_secure_password
-ACCESS_TOKEN_SECRET=dowellcubes_access_token_secret_2024_secure_key_here
-REFRESH_TOKEN_SECRET=dowellcubes_refresh_token_secret_2024_secure_key_here
-DATACUBE_API_KEY=your_datacube_api_key_here
-VITE_SERVER_URL=http://82.29.161.195:5000/api
-ENVEOF
+            echo "ENV=production" > .env.production
+            echo "PORT=5000" >> .env.production
+            echo "SERVER_URL=http://82.29.161.195:5000" >> .env.production
+            echo "FRONTEND_URL=http://82.29.161.195:8080" >> .env.production
+            echo "DATABASE_URL=mongodb://dowellcubes_mongo_container:27017/dowellcubes" >> .env.production
+            echo "REDIS_HOST=dowellcubes_cache_container" >> .env.production
+            echo "REDIS_PORT=6379" >> .env.production
+            echo "REDIS_PASSWORD=dowellcubes_redis_2024_secure_password" >> .env.production
+            echo "ACCESS_TOKEN_SECRET=dowellcubes_access_token_secret_2024_secure_key_here" >> .env.production
+            echo "REFRESH_TOKEN_SECRET=dowellcubes_refresh_token_secret_2024_secure_key_here" >> .env.production
+            echo "DATACUBE_API_KEY=your_datacube_api_key_here" >> .env.production
+            echo "VITE_SERVER_URL=http://82.29.161.195:5000/api" >> .env.production
             echo "✅ .env.production created. Please update DATACUBE_API_KEY with your actual value."
           fi
 
