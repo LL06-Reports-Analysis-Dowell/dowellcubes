@@ -66,3 +66,4 @@ You can start DoWellCubes interactively based on what components you need to run
   ```bash
   docker logs <container_name>
   ```
+# Test deployment
