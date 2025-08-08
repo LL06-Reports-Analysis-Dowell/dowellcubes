@@ -54,50 +54,17 @@ jobs:
           if [ ! -f ".env.production" ]; then
             echo "Creating .env.production file..."
             cat > .env.production << 'ENVEOF'
-# =============================================================================
-# PRODUCTION ENVIRONMENT VARIABLES
-# Server: 82.29.161.195
-# Multi-Project Deployment (DowellCubes runs on port 8080)
-# =============================================================================
-
-# =============================================================================
-# ENVIRONMENT CONFIGURATION
-# =============================================================================
 ENV=production
 PORT=5000
-
-# =============================================================================
-# SERVER URLs (Updated for multi-project deployment)
-# =============================================================================
 SERVER_URL=http://82.29.161.195:5000
 FRONTEND_URL=http://82.29.161.195:8080
-
-# =============================================================================
-# DATABASE CONFIGURATION (Updated port)
-# =============================================================================
 DATABASE_URL=mongodb://dowellcubes_mongo_container:27017/dowellcubes
-
-# =============================================================================
-# REDIS CONFIGURATION (Updated port)
-# =============================================================================
 REDIS_HOST=dowellcubes_cache_container
 REDIS_PORT=6379
 REDIS_PASSWORD=dowellcubes_redis_2024_secure_password
-
-# =============================================================================
-# JWT TOKEN CONFIGURATION
-# =============================================================================
 ACCESS_TOKEN_SECRET=dowellcubes_access_token_secret_2024_secure_key_here
 REFRESH_TOKEN_SECRET=dowellcubes_refresh_token_secret_2024_secure_key_here
-
-# =============================================================================
-# API KEYS
-# =============================================================================
 DATACUBE_API_KEY=your_datacube_api_key_here
-
-# =============================================================================
-# FRONTEND CONFIGURATION (Vite Environment Variables)
-# =============================================================================
 VITE_SERVER_URL=http://82.29.161.195:5000/api
 ENVEOF
             echo "✅ .env.production created. Please update DATACUBE_API_KEY with your actual value."
