@@ -50,6 +50,59 @@ jobs:
           git fetch origin main
           git reset --hard origin/main || { echo "Git pull failed"; exit 1; }
 
+          # Create .env.production if it doesn't exist
+          if [ ! -f ".env.production" ]; then
+            echo "Creating .env.production file..."
+            cat > .env.production << 'ENVEOF'
+# =============================================================================
+# PRODUCTION ENVIRONMENT VARIABLES
+# Server: 82.29.161.195
+# Multi-Project Deployment (DowellCubes runs on port 8080)
+# =============================================================================
+
+# =============================================================================
+# ENVIRONMENT CONFIGURATION
+# =============================================================================
+ENV=production
+PORT=5000
+
+# =============================================================================
+# SERVER URLs (Updated for multi-project deployment)
+# =============================================================================
+SERVER_URL=http://82.29.161.195:5000
+FRONTEND_URL=http://82.29.161.195:8080
+
+# =============================================================================
+# DATABASE CONFIGURATION (Updated port)
+# =============================================================================
+DATABASE_URL=mongodb://dowellcubes_mongo_container:27017/dowellcubes
+
+# =============================================================================
+# REDIS CONFIGURATION (Updated port)
+# =============================================================================
+REDIS_HOST=dowellcubes_cache_container
+REDIS_PORT=6379
+REDIS_PASSWORD=dowellcubes_redis_2024_secure_password
+
+# =============================================================================
+# JWT TOKEN CONFIGURATION
+# =============================================================================
+ACCESS_TOKEN_SECRET=dowellcubes_access_token_secret_2024_secure_key_here
+REFRESH_TOKEN_SECRET=dowellcubes_refresh_token_secret_2024_secure_key_here
+
+# =============================================================================
+# API KEYS
+# =============================================================================
+DATACUBE_API_KEY=your_datacube_api_key_here
+
+# =============================================================================
+# FRONTEND CONFIGURATION (Vite Environment Variables)
+# =============================================================================
+VITE_SERVER_URL=http://82.29.161.195:5000/api
+ENVEOF
+            echo "✅ .env.production created. Please update DATACUBE_API_KEY with your actual value."
+          fi
+
           # Verify docker-compose file exists
           if [ ! -f "docker-compose.prod.yml" ]; then
             echo "Error: docker-compose.prod.yml not found"
@@ -71,6 +124,8 @@ jobs:
           echo "DowellCubes deployment completed successfully!"
           echo "Frontend available at: http://82.29.161.195:8080"
           echo "Backend available at: http://82.29.161.195:5000"
+          echo ""
+          echo "⚠️  IMPORTANT: Update DATACUBE_API_KEY in .env.production with your actual API key"
           ENDSSH
 
       - name: Verify Deployment
@@ -80,3 +135,5 @@ jobs:
           echo "Validation successful: DowellCubes service is up and running."
           echo "Frontend: http://82.29.161.195:8080"
           echo "Backend: http://82.29.161.195:5000"
+          echo ""
+          echo "⚠️  Don't forget to update DATACUBE_API_KEY in .env.production on the server!"
